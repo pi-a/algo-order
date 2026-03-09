@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛸 Adventures of an Alien Baby - Does Order Matter?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design tokens ────────────────────────────────────────── */
+    :root {
+      --bg: #090716; --surface: #12102a; --surface2: #1c1838; --surface3: #251f48;
+      --green: #39ff14; --yellow: #ffd93d; --pink: #ff6b9d;
+      --blue: #4cc9f0;  --purple: #c77dff; --orange: #ff9f43; --teal: #55efc4;
+      --red: #ff6b6b;
+      --text: #e8e0ff; --text-dim: #8880bb;
+      --border: rgba(99,88,200,0.25); --border2: rgba(99,88,200,0.45);
+      --shadow: 0 8px 40px rgba(0,0,0,0.6);
+      --radius: 18px; --radius-sm: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* ── Starfield ────────────────────────────────────────────── */
+    #star-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── App shell ────────────────────────────────────────────── */
+    #app {
+      position: relative; z-index: 1;
+      max-width: 900px; margin: 0 auto;
+      padding: 20px 20px 60px;
+    }
+
+    /* ── Progress bar ─────────────────────────────────────────── */
+    #progress-wrap {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 16px 0 34px;
+    }
+    .pdot {
+      position: relative; width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid var(--border2); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800;
+      font-family: 'Baloo 2', sans-serif; color: var(--text-dim);
+      transition: all .4s; cursor: default;
+    }
+    .pdot.done   { background: rgba(57,255,20,0.15); border-color: var(--green); color: var(--green); }
+    .pdot.active {
+      background: rgba(255,217,61,0.15); border-color: var(--yellow);
+      color: var(--yellow); transform: scale(1.16);
+      box-shadow: 0 0 18px rgba(255,217,61,0.4);
+    }
+    .pdot-line   { flex: 1; max-width: 44px; height: 2px; background: var(--border); border-radius: 2px; }
+    .pdot-label  {
+      position: absolute; top: calc(100% + 5px);
+      left: 50%; transform: translateX(-50%);
+      font-size: .6rem; white-space: nowrap;
+      color: var(--text-dim); font-family: 'Nunito', sans-serif;
+    }
+    .pdot.active .pdot-label { color: var(--yellow); }
+    .pdot.done   .pdot-label { color: var(--green);  }
+
+    /* ── Pages ────────────────────────────────────────────────── */
+    .page { display: none; animation: fadeUp .45s ease both; }
+    .page.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 26px;
+      margin-bottom: 18px; box-shadow: var(--shadow);
+    }
+
+    /* ── Typography ───────────────────────────────────────────── */
+    h1, h2, h3, h4 { font-family: 'Baloo 2', sans-serif; }
+    h1 {
+      font-size: 2.1rem; font-weight: 800;
+      background: linear-gradient(120deg, var(--yellow) 0%, var(--orange) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 8px; line-height: 1.2;
+    }
+    h2 { font-size: 1.5rem; font-weight: 700; color: var(--blue); margin-bottom: 10px; }
+    h3 { font-size: 1.1rem; font-weight: 700; color: var(--yellow); margin-bottom: 8px; }
+    h4 { font-size: .9rem;  font-weight: 700; color: var(--text-dim); margin-bottom: 6px;
+         text-transform: uppercase; letter-spacing: .05em; }
+    .story { font-size: 1rem; line-height: 1.85; color: var(--text); margin-bottom: 12px; }
+    .story em { color: var(--yellow); font-style: normal; font-weight: 700; }
+    .story b  { color: var(--green); }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px; border-radius: 50px; border: none;
+      cursor: pointer; font-family: 'Baloo 2', sans-serif;
+      font-size: .97rem; font-weight: 700; transition: all .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--yellow) 0%, var(--orange) 100%);
+      color: #080616; box-shadow: 0 4px 20px rgba(255,217,61,.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(255,217,61,.5); }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .btn-ghost  { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+    .nav { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+    /* ── Scene banner (between questions) ─────────────────────── */
+    /*
+     * This is the dedicated slot for the "kid at the door" illustration.
+     */
+    .scene-banner {
+      display: flex; align-items: flex-end; justify-content: center;
+      gap: 24px; margin-bottom: 18px; flex-wrap: wrap;
+      padding: 20px;
+      background: linear-gradient(180deg, transparent, rgba(99,88,200,0.06));
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .scene-banner .scene-img-wrap {
+      display: flex; align-items: flex-end; justify-content: center;
+      min-height: 160px; flex-shrink: 0;
+    }
+    .scene-banner .scene-img-wrap img,
+    .scene-banner .scene-img-wrap svg {
+      max-height: 160px; object-fit: contain;
+    }
+    .scene-caption-wrap {
+      flex: 1; min-width: 180px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding-bottom: 8px;
+    }
+    .scene-caption-label {
+      font-size: .7rem; font-weight: 800; letter-spacing: .08em;
+      color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;
+    }
+    .scene-caption {
+      font-family: 'Baloo 2', sans-serif; font-size: 1.15rem;
+      font-weight: 700; color: var(--yellow); line-height: 1.4;
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      position: relative;
+    }
+    /* speech-bubble tail */
+    .scene-caption::before {
+      content: ''; position: absolute;
+      left: -10px; bottom: 18px;
+      border: 6px solid transparent;
+      border-right-color: var(--border2);
+    }
+
+    /* ── Options grid ─────────────────────────────────────────── */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin: 22px 0 0;
+    }
+    @media (max-width: 560px) {
+      .options-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Option card ──────────────────────────────────────────── */
+    /*
+     * Each card holds: the asset illustration (top) + label (bottom).
+     * The fixed-height .option-img-area ensures all cards line up
+     * regardless of the image's actual size.
+     */
+    .option-card {
+      background: var(--surface2); border: 2px solid var(--border2);
+      border-radius: var(--radius); padding: 16px;
+      cursor: pointer; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      transition: border-color .2s, background .2s, transform .2s;
+      user-select: none;
+    }
+    .option-card:hover:not(.revealed) {
+      border-color: var(--blue); transform: translateY(-3px);
+    }
+    .option-card.selected { border-color: var(--yellow); background: rgba(255,217,61,.05); }
+
+    /* Revealed states — shown after the student clicks any option */
+    .option-card.correct.revealed  {
+      border-color: var(--green); background: rgba(57,255,20,.05);
+      cursor: default;
+    }
+    .option-card.incorrect.revealed {
+      border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.03);
+      opacity: .75; cursor: default;
+    }
+    /* The badge that appears on the image area after reveal */
+    .option-verdict {
+      display: none; font-size: 1.4rem;
+      position: absolute; top: -8px; right: -8px;
+    }
+    .option-card.revealed .option-verdict { display: block; }
+
+    /* Fixed container for the illustration — same height for all cards */
+    .option-img-area {
+      position: relative; width: 100%; height: 130px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.02); border-radius: 8px; overflow: visible;
+    }
+    .option-img-area img,
+    .option-img-area svg {
+      max-width: 100%; max-height: 120px; object-fit: contain;
+    }
+    .option-label {
+      font-weight: 700; font-size: .92rem; color: var(--text); line-height: 1.35;
+    }
+    .option-why {
+      font-size: .78rem; color: var(--text-dim); font-style: italic;
+      line-height: 1.45; display: none; margin-top: 2px;
+    }
+    .option-card.revealed .option-why { display: block; }
+    .option-card.correct.revealed .option-why  { color: var(--teal); font-style: normal; }
+
+    /* ── Feedback box ─────────────────────────────────────────── */
+    .feedback-box {
+      border-radius: var(--radius-sm); padding: 16px 18px;
+      margin-top: 20px; display: flex; gap: 14px; align-items: flex-start;
+      animation: fadeUp .3s ease;
+    }
+    .feedback-box.fb-correct {
+      background: rgba(57,255,20,.07); border: 1px solid rgba(57,255,20,.3);
+    }
+    .feedback-box.fb-wrong {
+      background: rgba(255,217,61,.06); border: 1px solid rgba(255,217,61,.25);
+    }
+    .feedback-ico { font-size: 1.8rem; flex-shrink: 0; }
+    .feedback-text { font-size: .93rem; line-height: 1.65; color: var(--text); }
+    .feedback-text b  { color: var(--green); }
+    .feedback-text em { color: var(--yellow); font-style: normal; }
+
+    /* concept tag — appears in feedback box */
+    .concept-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 20px; padding: 4px 14px; font-size: .82rem;
+      font-weight: 800; font-family: 'Baloo 2', sans-serif;
+      margin-top: 10px;
+    }
+    .concept-tag.commutative { background: rgba(57,255,20,.14); color: var(--green); border: 1px solid rgba(57,255,20,.3); }
+    .concept-tag.ordered     { background: rgba(255,107,107,.14); color: #ff9999; border: 1px solid rgba(255,107,107,.3); }
+
+    /* ── Score counter ────────────────────────────────────────── */
+    .score-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(76,201,240,.1); border: 1px solid rgba(76,201,240,.3);
+      border-radius: 20px; padding: 4px 14px; font-size: .83rem;
+      color: var(--blue); font-weight: 700; margin-bottom: 14px;
+    }
+
+    /* ── Summary page ─────────────────────────────────────────── */
+    .summary-section {
+      border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+    }
+    .summary-section.s-comm {
+      background: rgba(57,255,20,.04); border: 1px solid rgba(57,255,20,.2);
+    }
+    .summary-section.s-ord {
+      background: rgba(255,107,107,.04); border: 1px solid rgba(255,107,107,.2);
+    }
+    .summary-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+      font-size: .93rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .cs-box {
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 20px; margin-top: 16px;
+    }
+    .cs-box h3 { color: var(--purple); }
+    .medal { font-size: 3.5rem; margin-bottom: 10px; display: block; }
+
+    /* ── Name input (page 1) ──────────────────────────────────── */
+    .name-input {
+      background: var(--surface2); border: 2px solid var(--border2);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: 'Baloo 2', sans-serif; font-size: 1.5rem; font-weight: 700;
+      padding: 12px 18px; width: 100%; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .name-input:focus {
+      border-color: var(--yellow);
+      box-shadow: 0 0 16px rgba(255,217,61,0.22);
+    }
+    .name-input::placeholder { color: var(--text-dim); font-weight: 400; font-size: 1.1rem; }
+    .name-preview {
+      min-height: 28px; font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem; color: var(--yellow); margin-top: 8px; font-weight: 700;
+    }
+    .name-fg { margin-top: 22px; }
+    .name-fg label {
+      display: block; font-weight: 700; margin-bottom: 8px; font-size: .95rem;
+    }
+    .name-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 22px 0;
+    }
+
+    /* Confetti */
+    .confetti-piece {
+      position: fixed; border-radius: 2px;
+      pointer-events: none; animation: cfall linear forwards;
+    }
+    @keyframes cfall {
+      0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+    @media print {
+      #star-canvas, #progress-wrap, .nav, .btn { display: none !important; }
+      body { background: white; color: black; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+
+<div id="app">
+  <div id="progress-wrap"></div>
+
+  <!-- Five empty page containers — JS fills each one when navigated to -->
+  <div class="page active" id="pg1"></div>
+  <div class="page"        id="pg2"></div>
+  <div class="page"        id="pg3"></div>
+  <div class="page"        id="pg4"></div>
+  <div class="page"        id="pg5"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+  ● HTML formatting: <em>italic/yellow</em>, <b>bold/green</b>
+════════════════════════════════════════════════════════════════════ -->
+<script type="text/yaml" id="story-data">
+
+intro:
+  title: "Does the <b>Order</b> <span class='ei'>👔</span> Matter?"
+  heading: "<span class='ei'>🛸</span> The Alien at the Door"
+  paragraphs:
+    - "You are getting ready to go out. The <em>baby alien</em> looks at you with wonder and asks, \"Why do you need that?\""
+    - "\"It is a bit cold outside, so I need a jacket,\" you reply."
+    - "\"Why are you putting that on <b>first</b> and then the other?\" the <em>baby alien</em> asks."
+    - "You smile. \"Let me show you!\" Some things have to go in a certain <b>order</b>, and some things don't."
+  name_label: "✏️ Give your alien friend a name:"
+  name_placeholder: "e.g. Zorp, Pip, Nova…"
+  name_greeting: "👾 Hello, <em>{name}</em>! Ready to learn about <b>order</b>?"
+  alien_asks_label: "<em>{name}</em> asks…"
+  next_button: "Let's find out! 🔍"
+
+scene_caption:
+  q1: "So, jacket <b>first</b>? Or shoes <b>first</b>? Does it matter?"
+  q2: "What about socks and shoes? Same question, which one goes <b>first</b>?"
+  q3: "And the backpack! When does the backpack go on?"
+
+questions:
+  counter_label: "Question {n} of {total}"
+  next_label: "Next question →"
+  next_final: "See what we learned! 🎓"
+
+  q1:
+    question: "Jacket <b>first</b>, or shoes <b>first</b>?"
+    subtitle: "You want to go outside. Does the <b>order</b> you do it in change anything, <em>{name}</em>?"
+    options:
+      shoes:
+        label: "Shoes first, then jacket"
+        why: "This works! Shoes on, then jacket on. No problem."
+      jacket:
+        label: "Jacket first, then shoes"
+        why: "This works perfectly! Jacket on, then shoes on. Easy."
+      nodiff:
+        label: "No difference, both work!"
+        why: "Exactly! Both <b>orders</b> give the same result."
+    feedback_correct: "Correct, <em>{name}</em>! 🎉 The <b>order</b> of these two steps does NOT matter."
+    feedback_wrong: "Almost, <em>{name}</em>! Think: can you still put your jacket on if your shoes are already on?"
+    concept: "commutative"
+    concept_label: "🔀 <b>Order</b> doesn't matter here"
+
+  q2:
+    question: "Socks <b>first</b>, or shoes <b>first</b>?"
+    subtitle: "You need both socks AND shoes. If you put your shoes on <b>first</b>... what happens?"
+    options:
+      socks:
+        label: "Socks first, then shoes"
+        why: "Correct! Socks go on <b>first</b>, then shoes on top."
+      shoes:
+        label: "Shoes first, then socks"
+        why: "Uh-oh! You can't slide socks under shoes that are already on!"
+      nodiff:
+        label: "No difference!"
+        why: "It does make a difference! Imagine putting socks over your shoes..."
+    feedback_correct: "Exactly right, <em>{name}</em>! 🧦 You MUST put socks on <b>first</b>. The <b>order</b> here matters."
+    feedback_wrong: "Hmm, think carefully, <em>{name}</em>! Can you add socks if your shoes are already tied tight?"
+    concept: "ordered"
+    concept_label: "⚠️ <b>Order</b> matters here"
+
+  q3:
+    question: "Jacket <b>first</b>, or backpack <b>first</b>?"
+    subtitle: "The backpack goes over your shoulders. Does it matter which goes on <b>first</b>?"
+    options:
+      jacket:
+        label: "Jacket first, then backpack"
+        why: "Correct! Jacket on <b>first</b>, then the straps go over it."
+      backpack:
+        label: "Backpack first, then jacket"
+        why: "Tricky! The straps would block you from sliding your jacket on."
+      nodiff:
+        label: "No difference!"
+        why: "It does make a difference! Imagine slipping a jacket over thick backpack straps."
+    feedback_correct: "Spot on, <em>{name}</em>! 🎒 Jacket goes on <b>first</b>. The <b>order</b> matters here too."
+    feedback_wrong: "Not quite, <em>{name}</em>! Could you pull a jacket on over a backpack without taking it off?"
+    concept: "ordered"
+    concept_label: "⚠️ <b>Order</b> matters here"
+
+summary:
+  heading: "<span class='ei'>🎓</span> Here's What <em>{name}</em> Figured Out!"
+  score_all: "<em>{name}</em> got all 3 right on the <b>first</b> try! 🌟"
+  score_most: "<em>{name}</em> got {score} out of 3. Well done! 🎉"
+  score_some: "<em>{name}</em> figured them all out in the end! 💪"
+  answer_prefix: "Answer:"
+  commutative_heading: "✅ When <b>order</b> does NOT matter:"
+  commutative_intro: "These steps are called <b>commutative</b>. Swap them around, and the result is the same."
+  ordered_heading: "⚠️ When <b>order</b> DOES matter:"
+  ordered_intro: "These steps must happen in a specific sequence."
+  cs_heading: "💻 Why does this matter in computer science?"
+  cs_text: "A program is just an <b>algorithm</b>. A programmer must think: which steps can <em>{name}</em> put in any <b>order</b>? And which MUST come before others?"
+  math_note: "By the way, math has this too! 2 + 3 = 3 + 2 (order doesn't matter), but 10 − 3 is not 3 − 10 (order matters!)."
+  restart_button: "🔄 Try again from the start"
+
+</script>
+
+<!-- js-yaml parses the YAML block above. Needs an internet connection. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+//  QUESTION DATA
+// ═══════════════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    id: 'q1',
+    concept: 'commutative',   // ← order doesn't matter
+    sceneAsset: 'scene-door', //
+    options: [
+      // asset name
+      { key: 'shoes',  asset: 'q1-shoes-first',   correct: false },
+      { key: 'jacket', asset: 'q1-jacket-first',  correct: false },
+      { key: 'nodiff', asset: 'q1-no-difference', correct: true  },
+    ],
+  },
+  {
+    id: 'q2',
+    concept: 'ordered',       // ← order DOES matter
+    sceneAsset: 'scene-door',
+    options: [
+      { key: 'socks',  asset: 'q2-socks-first',   correct: true  },
+      { key: 'shoes',  asset: 'q2-shoes-first',   correct: false },
+      { key: 'nodiff', asset: 'q2-no-difference', correct: false },
+    ],
+  },
+  {
+    id: 'q3',
+    concept: 'ordered',
+    sceneAsset: 'scene-door',
+    options: [
+      { key: 'jacket',   asset: 'q3-jacket-first',   correct: true  },
+      { key: 'backpack', asset: 'q3-backpack-first',  correct: false },
+      { key: 'nodiff',   asset: 'q3-no-difference',  correct: false },
+    ],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════════════
+let STORY = {};
+let currentPage = 1;
+let alienName = '';   // set by the name input on page 1, used in all {name} slots
+
+// One entry per question: answered flag, which key was clicked, was it correct
+let questionStates = QUESTIONS.map(() => ({
+  answered: false, selectedKey: null, correct: false
+}));
+
+// ═══════════════════════════════════════════════════════════════════════
+//  STORY / TEXT SYSTEM 
+// ═══════════════════════════════════════════════════════════════════════
+
+/** Retrieve a text value from STORY by dot-path, substituting {vars}. */
+function t(path, vars = {}) {
+  const keys = path.split('.');
+  let val = STORY;
+  for (const k of keys) {
+    if (val == null || typeof val !== 'object') return path;
+    val = val[k];
+  }
+  if (val == null) return path;
+  if (Array.isArray(val)) return val.map(s => applyVars(String(s), vars));
+  return applyVars(String(val), vars);
+}
+
+function applyVars(str, vars) {
+  return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : `{${k}}`);
+}
+
+/** Convert a paragraphs array into a string of <p class="story"> elements. */
+function renderParas(path, vars = {}) {
+  const raw = t(path, vars);
+  const list = Array.isArray(raw) ? raw : [raw];
+  return list.map(p => `<p class="story">${p}</p>`).join('');
+}
+
+/** Deep-merge src into dst (used to apply external story.yaml over embedded). */
+function deepMerge(dst, src) {
+  for (const k in src) {
+    if (src[k] && typeof src[k] === 'object' && !Array.isArray(src[k]))
+      dst[k] = deepMerge(dst[k] || {}, src[k]);
+    else dst[k] = src[k];
+  }
+  return dst;
+}
+
+async function loadStory() {
+  // Step 1: parse the embedded YAML
+  const embedded = document.getElementById('story-data');
+  if (embedded && typeof jsyaml !== 'undefined') {
+    try {
+      STORY = jsyaml.load(embedded.textContent) || {};
+    } catch (e) {
+      showYamlError(e.message);
+    }
+  }
+  // Step 2: try external story.yaml (GitHub Pages / any web server).
+  // If found, its values override the embedded ones above.
+  try {
+    const r = await fetch('story.yaml');
+    if (r.ok) {
+      const external = jsyaml.load(await r.text());
+      STORY = deepMerge(STORY, external);
+    }
+  } catch (_) { /* no external file — that's fine */ }
+}
+
+function showYamlError(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#ff4444;color:white;padding:12px 20px;border-radius:8px;z-index:9999;font-family:monospace;font-size:.85rem;max-width:90vw';
+  el.textContent = '⚠️ YAML error: ' + msg;
+  document.body.appendChild(el);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ASSET IMAGE SYSTEM
+// ═══════════════════════════════════════════════════════════════════════
+
+function img(name, maxW = '120px', extraStyle = '') {
+  return `<img
+    src="assets/${name}.svg"
+    onerror="tryAssetFallback(this,'${name}')"
+    style="max-width:${maxW};max-height:100%;object-fit:contain;${extraStyle}"
+    alt="${name.replace(/-/g, ' ')}">`;
+}
+
+function tryAssetFallback(imgEl, name) {
+  if (!imgEl._triedPng) {
+    // First failure: try .png extension
+    imgEl._triedPng = true;
+    imgEl.onerror = () => tryAssetFallback(imgEl, name);
+    imgEl.src = `assets/${name}.png`;
+    return;
+  }
+  // Both SVG and PNG missing — replace with the vertical-line placeholder.
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;';
+  wrap.innerHTML = `
+    <svg width="6" height="88" viewBox="0 0 6 88"
+         xmlns="http://www.w3.org/2000/svg" style="opacity:.45">
+      <line x1="3" y1="4" x2="3" y2="84"
+            stroke="#6655cc" stroke-width="2.5"
+            stroke-dasharray="5,4" stroke-linecap="round"/>
+    </svg>
+    <span style="font-size:7.5px;color:#5548aa;font-family:monospace;
+                 opacity:.55;text-align:center;max-width:78px;
+                 word-break:break-all;line-height:1.2;">${name}</span>`;
+  if (imgEl.parentNode) imgEl.replaceWith(wrap);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  STARFIELD
+// ═══════════════════════════════════════════════════════════════════════
+(function initStars() {
+  const c = document.getElementById('star-canvas');
+  const ctx = c.getContext('2d');
+  let stars = [];
+  function resize() {
+    c.width = innerWidth; c.height = innerHeight;
+    stars = Array.from({ length: 160 }, () => ({
+      x: Math.random() * c.width, y: Math.random() * c.height,
+      r: Math.random() * 1.4 + .3,
+      a: Math.random(), da: (Math.random() - .5) * .008
+    }));
+  }
+  resize(); addEventListener('resize', resize);
+  (function draw() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    stars.forEach(s => {
+      s.a = Math.max(.1, Math.min(1, s.a + s.da));
+      if (s.a <= .1 || s.a >= 1) s.da = -s.da;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,190,255,${s.a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════
+function goPage(n) {
+  // Render the target page content before showing it
+  if (n === 1) renderIntro();
+  if (n === 2) renderQuestion(0);
+  if (n === 3) renderQuestion(1);
+  if (n === 4) renderQuestion(2);
+  if (n === 5) renderSummary();
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg' + n).classList.add('active');
+  currentPage = n;
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress() {
+  const labels = ['Story', 'Q 1', 'Q 2', 'Q 3', 'Lesson'];
+  const wrap = document.getElementById('progress-wrap');
+  wrap.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'pdot'
+      + (i === currentPage ? ' active' : i < currentPage ? ' done' : '');
+    dot.innerHTML = (i < currentPage ? '✓' : i)
+      + `<span class="pdot-label">${labels[i-1]}</span>`;
+    wrap.appendChild(dot);
+    if (i < 5) {
+      const line = document.createElement('div');
+      line.className = 'pdot-line';
+      wrap.appendChild(line);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  PAGE 1 — INTRO  (includes alien name input)
+// ═══════════════════════════════════════════════════════════════════════
+function renderIntro() {
+  const pg = document.getElementById('pg1');
+  pg.innerHTML = `
+    <div class="card">
+      <!--
+        SCENE ILLUSTRATION (page 1)
+        Assets used:  assets/scene-door.svg  (or .png)
+                      assets/alien-wonder.svg (or .png)
+        Both fall back to a vertical-line placeholder if the files are missing.
+      -->
+      <div style="display:flex;align-items:flex-end;justify-content:center;
+                  gap:28px;margin-bottom:24px;flex-wrap:wrap;padding:10px">
+        <div style="min-height:180px;display:flex;align-items:flex-end">
+          ${img('scene-door', '100%')}
+        </div>
+        <div style="min-height:180px;display:flex;align-items:flex-end">
+          ${img('alien-wonder', '100%')}
+        </div>
+      </div>
+
+      <h1>${t('intro.title')}</h1>
+      <h2>${t('intro.heading')}</h2>
+      ${renderParas('intro.paragraphs')}
+
+      <!-- ── Name input ──────────────────────────────────────────────
+           The student types the alien's name here. Every subsequent
+           page uses {name} substitution to refer to the alien by that
+           name throughout the story and all question feedback text.
+      ──────────────────────────────────────────────────────────────── -->
+      <hr class="name-divider">
+      <div class="name-fg">
+        <label for="alien-name-input">${t('intro.name_label')}</label>
+        <input
+          id="alien-name-input"
+          class="name-input"
+          type="text"
+          maxlength="20"
+          placeholder="${t('intro.name_placeholder')}"
+          oninput="updateNamePreview()"
+          autocomplete="off">
+        <p class="name-preview" id="name-preview"></p>
+      </div>
+
+      <div class="nav">
+        <!-- Button stays disabled until the student has typed at least one character -->
+        <button class="btn btn-primary" id="intro-next-btn"
+                onclick="goPage(2)" disabled>
+          ${t('intro.next_button')}
+        </button>
+      </div>
+    </div>
+  `;
+
+  // If the student already named the alien (e.g. after pressing Back from page 2),
+  // restore the input value and re-validate the button state.
+  if (alienName) {
+    const inp = document.getElementById('alien-name-input');
+    if (inp) {
+      inp.value = alienName;
+      updateNamePreview();
+    }
+  }
+}
+
+/** Called on every keystroke in the name input. Updates the greeting
+ *  preview line and enables/disables the Next button accordingly. */
+function updateNamePreview() {
+  const inp  = document.getElementById('alien-name-input');
+  const prev = document.getElementById('name-preview');
+  const btn  = document.getElementById('intro-next-btn');
+  if (!inp) return;
+
+  alienName = inp.value.trim();
+
+  if (alienName.length >= 1) {
+    prev.textContent = applyVars(t('intro.name_greeting'), { name: alienName });
+    btn.disabled = false;
+  } else {
+    prev.textContent = '';
+    btn.disabled = true;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  PAGES 2-4 — QUESTIONS
+//  Called with qIdx = 0, 1, or 2.
+// ═══════════════════════════════════════════════════════════════════════
+function renderQuestion(qIdx) {
+  const pageNum = qIdx + 2;           // Q0 → pg2, Q1 → pg3, Q2 → pg4
+  const pg      = document.getElementById('pg' + pageNum);
+  const q       = QUESTIONS[qIdx];
+  const qs      = questionStates[qIdx];
+  const qData   = STORY.questions[q.id];
+  const nv      = { name: alienName };   // name vars — passed to every t() call
+
+  // ── Scene banner (the kid-at-door appears here between questions)
+  const sceneBanner = `
+    <div class="scene-banner">
+      <!--
+        SCENE: kid at the door + alien
+        Asset:  assets/scene-door.svg
+                assets/alien-wonder.svg
+      -->
+      <div class="scene-img-wrap">
+        ${img('scene-door', '60%', 'max-height:60%')}
+      </div>
+      <div class="scene-img-wrap">
+        ${img('alien-wonder', '50%', 'max-height:50%')}
+      </div>
+      <div class="scene-caption-wrap">
+        <div class="scene-caption-label">${t('intro.alien_asks_label', nv)}</div>
+        <div class="scene-caption">${t('scene_caption.' + q.id, nv)}</div>
+      </div>
+    </div>
+  `;
+
+  // ── Option cards (one per answer choice) ──────────────────────────
+  // Each card shows: the illustration placeholder + option label text.
+  // After the student clicks, all cards reveal their correct/incorrect state.
+  const optCards = q.options.map(opt => {
+    const optData = qData.options[opt.key];
+
+    // Determine CSS classes based on current answer state
+    let cardClass = 'option-card';
+    let verdict   = '';
+    if (qs.answered) {
+      cardClass += opt.correct ? ' correct revealed' : ' incorrect revealed';
+      if (opt.key === qs.selectedKey) cardClass += ' selected';
+      verdict = opt.correct ? '✅' : '❌';
+    }
+
+    return `
+      <div class="${cardClass}"
+           onclick="${qs.answered ? '' : `selectOption(${qIdx}, '${opt.key}')`}">
+        <div class="option-img-area">
+          <!--
+            OPTION ILLUSTRATION
+            Asset: assets/${opt.asset}.svg  (or .png)
+            This is where you place your drawing of the alien doing this action.
+            Falls back to a dashed vertical line if the file is missing.
+          -->
+          ${img(opt.asset, '90px')}
+          <span class="option-verdict">${verdict}</span>
+        </div>
+        <p class="option-label">${applyVars(optData.label, nv)}</p>
+        <p class="option-why">${applyVars(optData.why, nv)}</p>
+      </div>
+    `;
+  }).join('');
+
+  // ── Feedback (only visible after the student clicks) ──────────────
+  let feedbackHtml = '';
+  if (qs.answered) {
+    const isCorrect  = qs.correct;
+    const fbClass    = isCorrect ? 'fb-correct' : 'fb-wrong';
+    const ico        = isCorrect ? '🎉' : '🤔';
+    const msg        = t(`questions.${q.id}.feedback_${isCorrect ? 'correct' : 'wrong'}`, nv);
+    const conceptTag = t(`questions.${q.id}.concept_label`, nv);
+    const conceptCls = t(`questions.${q.id}.concept`);
+
+    feedbackHtml = `
+      <div class="feedback-box ${fbClass}">
+        <div class="feedback-ico">${ico}</div>
+        <div>
+          <div class="feedback-text">${msg}</div>
+          <span class="concept-tag ${conceptCls}">${conceptTag}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Next button: enabled once the student has answered ────────────
+  const nextLabel  = pageNum === 4 ? t('questions.next_final', nv) : t('questions.next_label', nv);
+  const nextTarget = pageNum + 1;
+
+  pg.innerHTML = `
+    ${sceneBanner}
+
+    <div class="card">
+      <h2>${t('questions.counter_label', { n: qIdx + 1, total: QUESTIONS.length })}</h2>
+      <p style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:4px">
+        ${t(`questions.${q.id}.question`, nv)}
+      </p>
+      <p class="story">${t(`questions.${q.id}.subtitle`, nv)}</p>
+
+      <div class="options-grid">${optCards}</div>
+
+      ${feedbackHtml}
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goPage(${pageNum - 1})">← Back</button>
+      <button class="btn btn-primary" id="pg${pageNum}-next"
+              onclick="goPage(${nextTarget})"
+              ${qs.answered ? '' : 'disabled'}>
+        ${nextLabel}
+      </button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  QUIZ LOGIC — called when a student clicks an option card
+// ═══════════════════════════════════════════════════════════════════════
+function selectOption(qIdx, optionKey) {
+  const q   = QUESTIONS[qIdx];
+  const qs  = questionStates[qIdx];
+  if (qs.answered) return;  // prevent double-click
+
+  // Find the option that was clicked
+  const opt = q.options.find(o => o.key === optionKey);
+  qs.answered    = true;
+  qs.selectedKey = optionKey;
+  qs.correct     = opt.correct;
+
+  // Re-render the entire question page to show the revealed state.
+  // This is simpler than patching individual DOM elements, and ensures
+  // the asset fallback system (onerror handlers) stays consistent.
+  renderQuestion(qIdx);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  PAGE 5 — SUMMARY
+// ═══════════════════════════════════════════════════════════════════════
+function renderSummary() {
+  const pg = document.getElementById('pg5');
+  const nv = { name: alienName };   // name vars
+
+  // Count first-try correct answers
+  const score = questionStates.filter(s => s.correct).length;
+
+  // Score message — each variant can use {name} and {score}
+  let scoreMsg = '';
+  if      (score === 3) scoreMsg = t('summary.score_all',  { ...nv, score });
+  else if (score === 2) scoreMsg = t('summary.score_most', { ...nv, score });
+  else                  scoreMsg = t('summary.score_some', { ...nv, score });
+
+  const medal = score === 3 ? '🌟' : score >= 2 ? '🎉' : '💪';
+
+  // Group questions by concept for the summary table
+  const commItems = QUESTIONS.filter(q => q.concept === 'commutative');
+  const ordItems  = QUESTIONS.filter(q => q.concept === 'ordered');
+
+  function summaryRow(q) {
+    const qData = STORY.questions[q.id];
+    // Show the correct option's label as the "right answer" summary
+    const correct = q.options.find(o => o.correct);
+    const correctLabel = applyVars(qData.options[correct.key].label, nv);
+    return `<div class="summary-row">
+      <span style="font-size:1.2rem">${q.concept === 'commutative' ? '🔀' : '⚠️'}</span>
+      <span style="flex:1;font-size:.9rem">
+        <b>${applyVars(qData.question, nv)}</b><br>
+        <span style="color:var(--text-dim)">${t('summary.answer_prefix', nv)} ${correctLabel}</span>
+      </span>
+    </div>`;
+  }
+
+  pg.innerHTML = `
+    <div class="card" style="text-align:center;padding-bottom:18px">
+      <span class="medal">${medal}</span>
+      <h1 style="margin-bottom:8px">${t('summary.heading', nv)}</h1>
+      <div class="score-badge">${scoreMsg}</div>
+    </div>
+
+    <!-- Commutative examples -->
+    <div class="summary-section s-comm">
+      <h3>${t('summary.commutative_heading', nv)}</h3>
+      <p class="story">${t('summary.commutative_intro', nv)}</p>
+      ${commItems.map(summaryRow).join('')}
+    </div>
+
+    <!-- Ordered examples -->
+    <div class="summary-section s-ord">
+      <h3>${t('summary.ordered_heading', nv)}</h3>
+      <p class="story">${t('summary.ordered_intro', nv)}</p>
+      ${ordItems.map(summaryRow).join('')}
+    </div>
+
+    <!-- CS concept explanation -->
+    <div class="cs-box">
+      <h3>${t('summary.cs_heading', nv)}</h3>
+      <p class="story">${t('summary.cs_text', nv)}</p>
+      <div style="margin-top:14px;padding:12px 16px;background:var(--surface);
+                  border-radius:var(--radius-sm);border:1px solid var(--border)">
+        <p class="story" style="font-size:.9rem;color:var(--text-dim)">
+          ${t('summary.math_note', nv)}
+        </p>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goPage(4)">← Back</button>
+      <button class="btn btn-primary" onclick="restartGame()">
+        ${t('summary.restart_button', nv)}
+      </button>
+    </div>
+  `;
+
+  // Confetti if they got all 3 right
+  if (score === 3) launchConfetti();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  CONFETTI (full-score reward)
+// ═══════════════════════════════════════════════════════════════════════
+function launchConfetti() {
+  const colors = ['#ffd93d', '#39ff14', '#ff6b9d', '#4cc9f0', '#c77dff', '#ff9f43'];
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left   = Math.random() * 100 + 'vw';
+    p.style.width  = (7 + Math.random() * 8) + 'px';
+    p.style.height = (7 + Math.random() * 8) + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+    p.style.animationDelay    = (Math.random() * 1.8) + 's';
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  RESTART
+// ═══════════════════════════════════════════════════════════════════════
+function restartGame() {
+  alienName = '';
+  questionStates = QUESTIONS.map(() => ({
+    answered: false, selectedKey: null, correct: false
+  }));
+  goPage(1);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════════════════
+(async function boot() {
+  await loadStory();   // load YAML text (embedded, then override with story.yaml)
+  renderIntro();       // fill page 1 with the story content
+  updateProgress();    // draw the 5-dot progress bar
+})();
+</script>
+</body>
+</html>
