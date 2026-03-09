@@ -327,6 +327,12 @@
       body { background: white; color: black; }
       .card { box-shadow: none; border: 1px solid #ccc; }
     }
+	
+		.ei {
+  -webkit-text-fill-color: initial;
+  background: none;
+  font-style: normal;
+}
   </style>
 </head>
 <body>
@@ -350,22 +356,25 @@
 <script type="text/yaml" id="story-data">
 
 intro:
-  title: "Does the <b>Order</b> <span class='ei'>👔</span> Matter?"
-  heading: "<span class='ei'>🛸</span> The Alien at the Door"
+  title: "Does the Order Matter?"
+  heading: "<span class='ei'>🛸</span> The Baby Alien at the Door"
   paragraphs:
     - "You are getting ready to go out. The <em>baby alien</em> looks at you with wonder and asks, \"Why do you need that?\""
     - "\"It is a bit cold outside, so I need a jacket,\" you reply."
-    - "\"Why are you putting that on <b>first</b> and then the other?\" the <em>baby alien</em> asks."
-    - "You smile. \"Let me show you!\" Some things have to go in a certain <b>order</b>, and some things don't."
+    - "\"What about those?\" it asks again."
+    - "\"Those are shoes. I need them to walk outside in the rain or snow,\" you respond. \"And that is my backpack for school,\" you add."
+    - "\"Why are you putting that on <b>first</b> and then the other? If I want to go out, do I need to follow the exact same <b>order</b> when putting things on?\" the <em>baby alien</em> asks."
+    - "\"Hmm, it actually depends. Sometimes you can put things on in any <b>order</b> you like, and sometimes you need to put one thing on before another,\" you explain."
+    - "You smile. \"Let me show you!\" Some things have to go in a certain <b>order</b>, and some things don't. Figuring out which is which is exactly what people who work with computers think about every day."
   name_label: "✏️ Give your alien friend a name:"
   name_placeholder: "e.g. Zorp, Pip, Nova…"
-  name_greeting: "👾 Hello, <em>{name}</em>! Ready to learn about <b>order</b>?"
-  alien_asks_label: "<em>{name}</em> asks…"
+  name_greeting: "👾 Hello, {name}! Ready to learn about order?"
+  alien_asks_label: "{name} asks…"
   next_button: "Let's find out! 🔍"
 
 scene_caption:
-  q1: "So, jacket <b>first</b>? Or shoes <b>first</b>? Does it matter?"
-  q2: "What about socks and shoes? Same question, which one goes <b>first</b>?"
+  q1: "So, jacket first? Or shoes first? Does it matter?"
+  q2: "What about socks and shoes? Same question, which one goes first?"
   q3: "And the backpack! When does the backpack go on?"
 
 questions:
@@ -375,7 +384,7 @@ questions:
 
   q1:
     question: "Jacket <b>first</b>, or shoes <b>first</b>?"
-    subtitle: "You want to go outside. Does the <b>order</b> you do it in change anything, <em>{name}</em>?"
+    subtitle: "You want to go outside. You need to put on your jacket AND your shoes. Does the <b>order</b> you do it in change anything? What do you think, <em>{name}</em>?"
     options:
       shoes:
         label: "Shoes first, then jacket"
@@ -393,25 +402,25 @@ questions:
 
   q2:
     question: "Socks <b>first</b>, or shoes <b>first</b>?"
-    subtitle: "You need both socks AND shoes. If you put your shoes on <b>first</b>... what happens?"
+    subtitle: "Now think carefully, <em>{name}</em>. You need both socks AND shoes. If you put your shoes on <b>first</b> and then try to add socks... what happens?"
     options:
       socks:
         label: "Socks first, then shoes"
-        why: "Correct! Socks go on <b>first</b>, then shoes on top."
+        why: "Correct! Socks go on <b>first</b>, then shoes on top. This is the only <b>order</b> that works."
       shoes:
         label: "Shoes first, then socks"
-        why: "Uh-oh! You can't slide socks under shoes that are already on!"
+        why: "Uh-oh! If your shoes are already on, you can't slide socks underneath them. You would have to take the shoes off <b>first</b>, which is extra work!"
       nodiff:
         label: "No difference!"
-        why: "It does make a difference! Imagine putting socks over your shoes..."
-    feedback_correct: "Exactly right, <em>{name}</em>! 🧦 You MUST put socks on <b>first</b>. The <b>order</b> here matters."
-    feedback_wrong: "Hmm, think carefully, <em>{name}</em>! Can you add socks if your shoes are already tied tight?"
+        why: "It does make a difference here! Try imagining putting shoes on bare feet, then adding socks on top."
+    feedback_correct: "Exactly right, <em>{name}</em>! <span class='ei'>🧦</span> If you try to put socks on after your shoes, they won't fit underneath. You MUST put socks on <b>first</b>. The <b>order</b> here matters. You can't just swap these two steps around."
+    feedback_wrong: "Hmm, think carefully, <em>{name}</em>! Imagine your shoes are already tied up tight on your feet. Can you still add socks? What would you have to do? The <b>order</b> here isn't flexible."
     concept: "ordered"
     concept_label: "⚠️ <b>Order</b> matters here"
 
   q3:
     question: "Jacket <b>first</b>, or backpack <b>first</b>?"
-    subtitle: "The backpack goes over your shoulders. Does it matter which goes on <b>first</b>?"
+    subtitle: "Last one, <em>{name}</em>! You need to put on your jacket AND your backpack. The backpack goes over your shoulders with straps. Does it matter which goes on <b>first</b>?"
     options:
       jacket:
         label: "Jacket first, then backpack"
@@ -429,17 +438,17 @@ questions:
 
 summary:
   heading: "<span class='ei'>🎓</span> Here's What <em>{name}</em> Figured Out!"
-  score_all: "<em>{name}</em> got all 3 right on the <b>first</b> try! 🌟"
-  score_most: "<em>{name}</em> got {score} out of 3. Well done! 🎉"
-  score_some: "<em>{name}</em> figured them all out in the end! 💪"
+  score_all: "<em>{name}</em> got all 3 right on the <b>first</b> try! <span class='ei'>🌟</span>"
+  score_most: "<em>{name}</em> got {score} out of 3. Well done! <span class='ei'>🎉</span>"
+  score_some: "<em>{name}</em> figured them all out in the end. That is the important part! <span class='ei'>💪</span>"
   answer_prefix: "Answer:"
-  commutative_heading: "✅ When <b>order</b> does NOT matter:"
-  commutative_intro: "These steps are called <b>commutative</b>. Swap them around, and the result is the same."
-  ordered_heading: "⚠️ When <b>order</b> DOES matter:"
-  ordered_intro: "These steps must happen in a specific sequence."
-  cs_heading: "💻 Why does this matter in computer science?"
-  cs_text: "A program is just an <b>algorithm</b>. A programmer must think: which steps can <em>{name}</em> put in any <b>order</b>? And which MUST come before others?"
-  math_note: "By the way, math has this too! 2 + 3 = 3 + 2 (order doesn't matter), but 10 − 3 is not 3 − 10 (order matters!)."
+  commutative_heading: "<span class='ei'>✅</span> When <b>order</b> does NOT matter:"
+  commutative_intro: "These steps are called commutative (kom-MYOO-tuh-tiv). Swap them around all you like, the result is the same."
+  ordered_heading: "<span class='ei'>⚠️</span> When <b>order</b> DOES matter:"
+  ordered_intro: "These steps must happen in a specific sequence. Doing them in the wrong <b>order</b> breaks things, or at least makes extra work!"
+  cs_heading: "<span class='ei'>💻</span> Why does this matter in computer science?"
+  cs_text: "A computer program is really just a list of steps, an <b>algorithm</b>. Every single step happens in the exact <b>order</b> a programmer writes it. So a programmer must think carefully: which steps can <em>{name}</em> put in any <b>order</b>? And which steps MUST come before others? Getting this wrong means a broken program, just like putting socks and shoes on in the wrong <b>order</b> causes a barefoot problem! This is one of the most important skills in thinking algorithmically: understanding <b>order</b> and dependency."
+  math_note: "By the way, math has this idea too! 2 + 3 = 3 + 2 (addition is commutative, so <b>order</b> doesn't matter). But 10 − 3 is not equal to 3 − 10 (subtraction is not commutative, so <b>order</b> does matter!)."
   restart_button: "🔄 Try again from the start"
 
 </script>
