@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛸 Adventures of an Alien Baby - Does Order Matter?</title>
+  <title>🛸 Abenteuer eines Alien-Babys - Spielt die Reihenfolge eine Rolle?</title>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     /* ── Design tokens ────────────────────────────────────────── */
@@ -655,7 +655,7 @@ function goPage(n) {
 }
 
 function updateProgress() {
-  const labels = ['Story', 'Q 1', 'Q 2', 'Q 3', 'Lesson'];
+  const labels = ['Story', 'F 1', 'F 2', 'F 3', 'Lektion'];
   const wrap = document.getElementById('progress-wrap');
   wrap.innerHTML = '';
   for (let i = 1; i <= 5; i++) {
@@ -867,7 +867,7 @@ function renderQuestion(qIdx) {
     </div>
 
     <div class="nav">
-      <button class="btn btn-ghost" onclick="goPage(${pageNum - 1})">← Back</button>
+      <button class="btn btn-ghost" onclick="goPage(${pageNum - 1})">← Zurück</button>
       <button class="btn btn-primary" id="pg${pageNum}-next"
               onclick="goPage(${nextTarget})"
               ${qs.answered ? '' : 'disabled'}>
@@ -967,7 +967,7 @@ function renderSummary() {
     </div>
 
     <div class="nav">
-      <button class="btn btn-ghost" onclick="goPage(4)">← Back</button>
+      <button class="btn btn-ghost" onclick="goPage(4)">← Zurück</button>
       <button class="btn btn-primary" onclick="restartGame()">
         ${t('summary.restart_button', nv)}
       </button>
